@@ -12,10 +12,13 @@ import { MessageConstants } from './../common/message.constants';
 export class DataService {
   private headers: Headers;
   constructor(private _http: Http, private _router: Router, private _authenService: AuthenService,
-    private _notificationService: NotificationService, private _utilityService: UtilityService) { }
+    private _notificationService: NotificationService, private _utilityService: UtilityService) {
+    this.headers = new Headers();
+    this.headers.append('Content-Type', 'application/json');
+  }
   get(uri: string) {
     this.headers.delete("Authorization");
-    this.headers.append("Authorization", "Bearer" + this._authenService.getLoggedInUser().access_token);
+    this.headers.append("Authorization", "Bearer " + this._authenService.getLoggedInUser().access_token);
     return this._http.get(SystemConstants.BASE_API + uri, { headers: this.headers }).map(this.extractData);
   }
   post(uri: string, data?: any) {
@@ -47,17 +50,17 @@ export class DataService {
 
   public handleError(error: any) {
     if (error.status == 401) {
-        localStorage.removeItem(SystemConstants.CURRENT_USER);
-        this._notificationService.printErrorMessage(MessageConstants.LOGIN_AGAIN_MSG);
-        this._utilityService.navigateToLogin();
+      localStorage.removeItem(SystemConstants.CURRENT_USER);
+      this._notificationService.printErrorMessage(MessageConstants.LOGIN_AGAIN_MSG);
+      this._utilityService.navigateToLogin();
     }
     else {
-        let errMsg = (error.message) ? error.message :
-            error.status ? `${error.status} - ${error.statusText}` : 'Lỗi hệ thống';
-        this._notificationService.printErrorMessage(errMsg);
+      let errMsg = (error.message) ? error.message :
+        error.status ? `${error.status} - ${error.statusText}` : 'Lỗi hệ thống';
+      this._notificationService.printErrorMessage(errMsg);
 
-        return Observable.throw(errMsg);
+      return Observable.throw(errMsg);
     }
 
-}
+  }
 }
