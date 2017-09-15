@@ -32,12 +32,22 @@ export class RoleComponent implements OnInit {
         this.totalRow = response.TotalRows;
       });
   }
+  loadRole(id: any) {
+    this._dataService.get('/api/appRole/detail/' + id)
+      .subscribe((response: any) => {
+        this.entity = response;
+      });
+  }
   pageChanged(event: any): void {
     this.pageIndex = event.page;
     this.loadData();
   }
   showAddModal() {
     this.entity = {};
+    this.modalAddEdit.show();
+  }
+  showEditModal(id: any) {
+    this.loadRole(id);
     this.modalAddEdit.show();
   }
   saveChange(valid: boolean) {
@@ -50,6 +60,23 @@ export class RoleComponent implements OnInit {
             this._notificationService.printSuccessMessage(MessageConstants.CREATED_OK_MSG);
           }, error => this._dataService.handleError(error));
       }
+      else {
+        this._dataService.put('/api/appRole/update', JSON.stringify(this.entity))
+          .subscribe((response: any) => {
+            this.loadData();
+            this.modalAddEdit.hide();
+            this._notificationService.printSuccessMessage(MessageConstants.UPDATED_OK_MSG);
+          }, error => this._dataService.handleError(error));
+      }
     }
+  }
+  deleteItem(id: any) {
+    this._notificationService.printConfirmationDialog(MessageConstants.CONFIRM_DELETE_MSG, () => this.deleteItemConfirm(id));
+  }
+  deleteItemConfirm(id: any) {
+    this._dataService.delete('/api/appRole/delete', 'id', id).subscribe((response: Response) => {
+      this._notificationService.printSuccessMessage(MessageConstants.DELETE_OK_MSG);
+      this.loadData();
+    })
   }
 }
