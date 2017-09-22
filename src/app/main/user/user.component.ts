@@ -65,7 +65,7 @@ export class UserComponent implements OnInit {
     this._dataService.get('/api/appUser/detail/' + id)
       .subscribe((response: any) => {
         this.entity = response;
-        //this.myRoles = [];
+        this.myRoles = [];
         for (let role of this.entity.Roles) {
           this.myRoles.push(role);
         }
