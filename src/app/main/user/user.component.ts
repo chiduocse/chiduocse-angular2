@@ -6,7 +6,6 @@ import { UploadService } from '../../core/services/upload.service';
 import { MessageConstants } from '../../core/common/message.constants';
 import { SystemConstants } from '../../core/common/system.constants';
 import { IMultiSelectOption } from 'angular-2-dropdown-multiselect';
-
 declare var moment: any;
 @Component({
   selector: 'app-user',
@@ -25,7 +24,7 @@ export class UserComponent implements OnInit {
   public filter: string = '';
   public users: any[];
   public entity: any;
-public baseFolder : string = SystemConstants.BASE_API;
+  public baseFolder: string = SystemConstants.BASE_API;
   public allRoles: IMultiSelectOption[] = [];
   public roles: any[];
   public dateOptions: any = {
@@ -45,6 +44,10 @@ public baseFolder : string = SystemConstants.BASE_API;
     this._dataService.get('/api/appUser/getlistpaging?page=' + this.pageIndex + '&pageSize=' + this.pageSize + '&filter=' + this.filter)
       .subscribe((response: any) => {
         this.users = response.Items;
+        this.users.forEach(obj =>{
+          obj.BirthDay = obj.BirthDay.split('/');
+          obj.BirthDay = new Date(obj.BirthDay[2], obj.BirthDay[1]-1, obj.BirthDay[0]);
+        });
         this.pageIndex = response.PageIndex;
         this.pageSize = response.PageSize;
         this.totalRow = response.TotalRows;
@@ -62,24 +65,25 @@ public baseFolder : string = SystemConstants.BASE_API;
     this._dataService.get('/api/appUser/detail/' + id)
       .subscribe((response: any) => {
         this.entity = response;
+        //this.myRoles = [];
         for (let role of this.entity.Roles) {
           this.myRoles.push(role);
         }
-        this.entity.BirthDay = moment(new Date(this.entity.BirthDay)).format('DD/MM/YYYY');
+        //this.entity.BirthDay = moment(new Date(this.entity.BirthDay)).format('DD/MM/YYYY');
       });
-  }
+  };
   pageChanged(event: any): void {
     this.pageIndex = event.page;
     this.loadData();
-  }
+  };
   showAddModal() {
     this.entity = {};
     this.modalAddEdit.show();
-  }
+  };
   showEditModal(id: any) {
     this.loadUserDetail(id);
     this.modalAddEdit.show();
-  }
+  };
   saveChange(valid: boolean) {
     if (valid) {
       this.entity.Roles = this.myRoles;
@@ -96,7 +100,7 @@ public baseFolder : string = SystemConstants.BASE_API;
         this.saveData();
       }
     }
-  }
+  };
   saveData() {
     if (this.entity.Id == undefined) {
       this._dataService.post('/api/appUser/add', JSON.stringify(this.entity))
@@ -114,17 +118,22 @@ public baseFolder : string = SystemConstants.BASE_API;
           this._notificationService.printSuccessMessage(MessageConstants.UPDATED_OK_MSG);
         }, error => this._dataService.handleError(error));
     }
-  }
+  };
   deleteItem(id: any) {
     this._notificationService.printConfirmationDialog(MessageConstants.CONFIRM_DELETE_MSG, () => this.deleteItemConfirm(id));
-  }
+  };
   deleteItemConfirm(id: any) {
     this._dataService.delete('/api/appUser/delete', 'id', id).subscribe((response: Response) => {
-      this._notificationService.printSuccessMessage(MessageConstants.DELETE_OK_MSG);
+      this._notificationService.printSuccessMessage(MessageConstants.DELETED_OK_MSG);
       this.loadData();
     })
-  }
+  };
   public selectGender(event) {
     this.entity.Gender = event.target.value
-  }
+  };
+  public selectedDate(value: any) {
+    console.log(value);
+    this.entity.BirthDay = moment(new Date(value.end._d)).format('DD/MM/YYYY');
+    console.log(this.entity.BirthDay);
+  };
 }
