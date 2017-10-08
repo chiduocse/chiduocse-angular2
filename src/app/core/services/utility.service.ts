@@ -33,12 +33,11 @@ export class UtilityService {
       if (node.ParentId !== null) {
         arr[map[node.ParentId]].children.push(node);
       } else {
-        //node.isExpanded= true;
         roots.push(node);
       }
     }
     return roots;
-  };
+  }
   
 
   MakeSeoTitle(input: string) {

@@ -3,10 +3,15 @@ import { DataService } from '../../core/services/data.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { NotificationService } from '../../core/services/notification.service';
 import { UploadService } from '../../core/services/upload.service';
+import { AuthenService } from '../../core/services/authen.service';
+import { UtilityService } from '../../core/services/utility.service';
+
 import { MessageConstants } from '../../core/common/message.constants';
 import { SystemConstants } from '../../core/common/system.constants';
+
 import { IMultiSelectOption } from 'angular-2-dropdown-multiselect';
 declare var moment: any;
+
 @Component({
   selector: 'app-user',
   templateUrl: './user.component.html',
@@ -27,27 +32,32 @@ export class UserComponent implements OnInit {
   public baseFolder: string = SystemConstants.BASE_API;
   public allRoles: IMultiSelectOption[] = [];
   public roles: any[];
+
   public dateOptions: any = {
     locale: { format: 'DD/MM/YYYY' },
     alwaysShowCalendars: false,
     singleDatePicker: true
   };
+
   constructor(private _dataService: DataService,
     private _notificationService: NotificationService,
-    private _uploadService: UploadService) { }
+    private _uploadService: UploadService,
+    private _utilityService: UtilityService,
+    public _authenService: AuthenService) {
+    if (_authenService.checkAccess('USER') == false) {
+      _utilityService.navigateToLogin();
+    }
+  }
 
   ngOnInit() {
     this.loadRoles();
     this.loadData();
   }
+
   loadData() {
     this._dataService.get('/api/appUser/getlistpaging?page=' + this.pageIndex + '&pageSize=' + this.pageSize + '&filter=' + this.filter)
       .subscribe((response: any) => {
         this.users = response.Items;
-        this.users.forEach(obj =>{
-          obj.BirthDay = obj.BirthDay.split('/');
-          obj.BirthDay = new Date(obj.BirthDay[2], obj.BirthDay[1]-1, obj.BirthDay[0]);
-        });
         this.pageIndex = response.PageIndex;
         this.pageSize = response.PageSize;
         this.totalRow = response.TotalRows;
@@ -69,21 +79,23 @@ export class UserComponent implements OnInit {
         for (let role of this.entity.Roles) {
           this.myRoles.push(role);
         }
-        //this.entity.BirthDay = moment(new Date(this.entity.BirthDay)).format('DD/MM/YYYY');
+        this.entity.BirthDay = moment(new Date(this.entity.BirthDay)).format('DD/MM/YYYY');
+
+        console.log(this.entity.BirthDay);
       });
-  };
+  }
   pageChanged(event: any): void {
     this.pageIndex = event.page;
     this.loadData();
-  };
+  }
   showAddModal() {
     this.entity = {};
     this.modalAddEdit.show();
-  };
+  }
   showEditModal(id: any) {
     this.loadUserDetail(id);
     this.modalAddEdit.show();
-  };
+  }
   saveChange(valid: boolean) {
     if (valid) {
       this.entity.Roles = this.myRoles;
@@ -100,8 +112,8 @@ export class UserComponent implements OnInit {
         this.saveData();
       }
     }
-  };
-  saveData() {
+  }
+  private saveData() {
     if (this.entity.Id == undefined) {
       this._dataService.post('/api/appUser/add', JSON.stringify(this.entity))
         .subscribe((response: any) => {
@@ -118,22 +130,21 @@ export class UserComponent implements OnInit {
           this._notificationService.printSuccessMessage(MessageConstants.UPDATED_OK_MSG);
         }, error => this._dataService.handleError(error));
     }
-  };
+  }
   deleteItem(id: any) {
     this._notificationService.printConfirmationDialog(MessageConstants.CONFIRM_DELETE_MSG, () => this.deleteItemConfirm(id));
-  };
+  }
   deleteItemConfirm(id: any) {
     this._dataService.delete('/api/appUser/delete', 'id', id).subscribe((response: Response) => {
       this._notificationService.printSuccessMessage(MessageConstants.DELETED_OK_MSG);
       this.loadData();
-    })
-  };
+    });
+  }
   public selectGender(event) {
     this.entity.Gender = event.target.value
-  };
+  }
+
   public selectedDate(value: any) {
-    console.log(value);
-    this.entity.BirthDay = moment(new Date(value.end._d)).format('DD/MM/YYYY');
-    console.log(this.entity.BirthDay);
-  };
+    this.entity.BirthDay = moment(value.end._d).format('DD/MM/YYYY');
+  }
 }

@@ -3,7 +3,6 @@ import { DataService } from '../../core/services/data.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { NotificationService } from '../../core/services/notification.service';
 import { MessageConstants } from '../../core/common/message.constants';
-
 @Component({
   selector: 'app-role',
   templateUrl: './role.component.html',
@@ -23,6 +22,7 @@ export class RoleComponent implements OnInit {
   ngOnInit() {
     this.loadData();
   }
+
   loadData() {
     this._dataService.get('/api/appRole/getlistpaging?page=' + this.pageIndex + '&pageSize=' + this.pageSize + '&filter=' + this.filter)
       .subscribe((response: any) => {
@@ -36,6 +36,7 @@ export class RoleComponent implements OnInit {
     this._dataService.get('/api/appRole/detail/' + id)
       .subscribe((response: any) => {
         this.entity = response;
+        console.log(this.entity);
       });
   }
   pageChanged(event: any): void {
@@ -77,6 +78,6 @@ export class RoleComponent implements OnInit {
     this._dataService.delete('/api/appRole/delete', 'id', id).subscribe((response: Response) => {
       this._notificationService.printSuccessMessage(MessageConstants.DELETED_OK_MSG);
       this.loadData();
-    })
+    });
   }
 }

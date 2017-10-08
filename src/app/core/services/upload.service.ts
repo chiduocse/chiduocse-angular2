@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import { DataService } from './data.service';
 import { UrlConstants } from '../../core/common/url.constants';
@@ -6,7 +7,9 @@ import { UtilityService } from './utility.service';
 @Injectable()
 export class UploadService {
   public responseData: any;
-  constructor(private _dataService: DataService, private _utilityService: UtilityService) { }
+  
+  constructor(private dataService: DataService, private utilityService: UtilityService) { }
+
   postWithFile(url: string, postData: any, files: File[]) {
     let formData: FormData = new FormData();
     formData.append('files', files[0], files[0].name);
@@ -18,15 +21,15 @@ export class UploadService {
         }
       }
     }
-    var returnResponse = new Promise((resolve, reject) => {
-      this._dataService.postFile(url, formData).subscribe(
+    var returnReponse = new Promise((resolve, reject) => {
+      this.dataService.postFile(url, formData).subscribe(
         res => {
           this.responseData = res;
           resolve(this.responseData);
         },
-        error => this._dataService.handleError(error)
+        error => this.dataService.handleError(error)
       );
     });
-    return returnResponse;
+    return returnReponse;
   }
 }

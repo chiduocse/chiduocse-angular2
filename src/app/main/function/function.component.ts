@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { TreeComponent, ITreeOptions  } from 'angular-tree-component';
+import { TreeComponent } from 'angular-tree-component';
 import { DataService } from '../../core/services/data.service';
 
 import { NotificationService } from '../../core/services/notification.service';
@@ -13,19 +13,18 @@ import { ModalDirective } from 'ngx-bootstrap/modal';
 })
 export class FunctionComponent implements OnInit {
   @ViewChild('addEditModal') public addEditModal: ModalDirective;
+  @ViewChild('permissionModal') public permissionModal: ModalDirective;
   @ViewChild(TreeComponent)
   private treeFunction: TreeComponent;
-  public options :ITreeOptions  = {
-    isExpandedField: 'expanded',
-    allowDrag: true,
-    displayField: "label",
-    childrenField: "items"
-  };
+
   public _functionHierachy: any[];
   public _functions: any[];
   public entity: any;
   public editFlag: boolean;
   public filter: string = '';
+  public _functionId: string;
+  public _permission: any[];
+
   constructor(private _dataService: DataService,
     private notificationService: NotificationService,
     private utilityService: UtilityService) { }
@@ -33,7 +32,26 @@ export class FunctionComponent implements OnInit {
   ngOnInit() {
     this.search();
   }
+  public showPermission(id: any) {
+    this._dataService.get('/api/appRole/getAllPermission?functionId=' + id).subscribe((response: any[]) => {
+      this._functionId = id;
+      this._permission = response;
+      this.permissionModal.show();
+    })
+  }
 
+  public savePermission(valid: boolean, _permission: any[]) {
+    if (valid) {
+      var data = {
+        Permissions: this._permission,
+        FunctionId: this._functionId
+      }
+      this._dataService.post('/api/appRole/savePermission', JSON.stringify(data)).subscribe((response: any) => {
+        this.notificationService.printSuccessMessage(response);
+        this.permissionModal.hide();
+      }, error => this._dataService.handleError(error));
+    }
+  }
   //Show add form
   public showAddModal() {
     this.entity = {};
@@ -46,7 +64,6 @@ export class FunctionComponent implements OnInit {
       .subscribe((response: any[]) => {
         this._functions = response.filter(x => x.ParentId == null);
         this._functionHierachy = this.utilityService.Unflatten(response);
-        console.log(this._functionHierachy);
       }, error => this._dataService.handleError(error));
   }
 
