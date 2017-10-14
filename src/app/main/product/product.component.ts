@@ -29,6 +29,7 @@ export class ProductComponent implements OnInit {
   public filterCategoryID: number;
   public products: any[];
   public productCategories: any[];
+  public checkedItems: any[];
 
   constructor(public _authenService: AuthenService,
     private _dataService: DataService,
@@ -122,5 +123,19 @@ export class ProductComponent implements OnInit {
 
   public keyupHandlerContentFunction(e: any) {
     this.entity.Content = e;
+  }
+
+  public deleteMulti() {
+    this.checkedItems = this.products.filter(x => x.Checked);
+    var checkedIds = [];
+    for (var i = 0; i < this.checkedItems.length; ++i)
+      checkedIds.push(this.checkedItems[i]["ID"]);
+
+    this.notificationService.printConfirmationDialog(MessageConstants.CONFIRM_DELETE_MSG, () => {
+      this._dataService.delete('/api/product/deletemulti', 'checkedProducts', JSON.stringify(checkedIds)).subscribe((response: any) => {
+        this.notificationService.printSuccessMessage(MessageConstants.DELETED_OK_MSG);
+        this.search();
+      }, error => this._dataService.handleError(error));
+    })
   }
 }
