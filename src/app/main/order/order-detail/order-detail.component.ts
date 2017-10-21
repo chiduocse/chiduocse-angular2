@@ -58,7 +58,6 @@ export class OrderDetailComponent implements OnInit {
       for (var item of this.orderDetails) {
         this.totalAmount = this.totalAmount + (item.Quantity * item.Price);
       }
-      console.log(this.totalAmount);
     }, error => this._dataService.handleError(error));
   }
 }
